@@ -91,7 +91,7 @@ jobs:
 
           ./build.sh
 
-          ./install.sh ../RhythmTengokuRePlus
+          ./install.sh ../../RhythmTengokuRePlus
 
           cd ..
 
