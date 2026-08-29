@@ -93,7 +93,7 @@ jobs:
 
           ./install.sh ../RhythmTengokuRePlus
 
-          cd ../RhythmTengokuRePlus
+          cd ..
 
       - name: Verify agbcc installation
         run: |
