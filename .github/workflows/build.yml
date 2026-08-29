@@ -1,0 +1,103 @@
+name: Build Rhythm Tengoku RePlus
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            binutils-arm-none-eabi \
+            git \
+            libpng-dev \
+            ffmpeg \
+            python3 \
+            wget \
+            curl
+
+      - name: Download baserom.gba
+        env:
+          ROM_URL: ${{ secrets.ROM_GDRIVE_URL }}
+        run: |
+          python3 - <<'PY'
+          import os
+          import re
+          import urllib.request
+
+          url = os.environ["ROM_URL"]
+
+          m = re.search(r'/file/d/([^/]+)', url)
+          if not m:
+              raise SystemExit("Google Driveの共有リンクを認識できません")
+
+          file_id = m.group(1)
+
+          download_url = (
+              "https://drive.usercontent.google.com/download"
+              "?id=" + file_id + "&export=download&confirm=t"
+          )
+
+          print("Downloading baserom.gba...")
+          urllib.request.urlretrieve(download_url, "baserom.gba")
+          PY
+
+          ls -lh baserom.gba
+          file baserom.gba
+
+      - name: Install devkitPro
+        run: |
+          wget https://www.shaffy.fr/install-devkitpro-pacman
+          chmod +x install-devkitpro-pacman
+          sudo ./install-devkitpro-pacman
+
+      - name: Setup devkitPro
+        run: |
+          echo "DEVKITPRO=/opt/devkitpro" >> "$GITHUB_ENV"
+          echo "DEVKITARM=/opt/devkitpro/devkitARM" >> "$GITHUB_ENV"
+          echo "DEVKITPPC=/opt/devkitpro/devkitPPC" >> "$GITHUB_ENV"
+
+      - name: Install GBA development tools
+        run: |
+          sudo dkp-pacman -Sy --noconfirm
+          sudo dkp-pacman -S --noconfirm gba-dev
+
+      - name: Build agbcc
+        run: |
+          git clone https://github.com/pret/agbcc.git
+          cd agbcc
+          ./build.sh
+          ./install.sh ../RhythmTengokuRePlus
+
+      - name: Check ROM
+        run: |
+          test -f baserom.gba
+          sha1sum baserom.gba
+
+      - name: Build DEBUG + PLAYTEST
+        run: |
+          make distclean
+          make -j"$(nproc)" FEATURES="PLAYTEST DEBUG"
+
+      - name: Prepare ROM
+        run: |
+          mkdir -p release
+          cp build/*.gba release/RhythmTengokuRePlus-DEBUG.gba
+
+      - name: Upload ROM
+        uses: actions/upload-artifact@v4
+        with:
+          name: RhythmTengokuRePlus-DEBUG
+          path: release/RhythmTengokuRePlus-DEBUG.gba
+          if-no-files-found: error
