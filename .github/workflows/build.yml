@@ -58,7 +58,8 @@ jobs:
 
       - name: Install devkitPro
         run: |
-          wget https://www.shaffy.fr/install-devkitpro-pacman
+          wget -O install-devkitpro-pacman https://www.shaffy.fr/install-devkitpro-pacman
+          sed -i 's/\r$//' install-devkitpro-pacman
           chmod +x install-devkitpro-pacman
           sudo ./install-devkitpro-pacman
 
