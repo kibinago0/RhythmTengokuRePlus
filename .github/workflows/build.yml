@@ -2,9 +2,6 @@ name: Build Rhythm Tengoku RePlus
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
 
 jobs:
   build:
@@ -38,29 +35,41 @@ jobs:
 
           url = os.environ["ROM_URL"]
 
-          m = re.search(r'/file/d/([^/]+)', url)
-          if not m:
-              raise SystemExit("Google Driveの共有リンクを認識できません")
+          match = re.search(r'/file/d/([^/]+)', url)
 
-          file_id = m.group(1)
+          if not match:
+              raise SystemExit(
+                  "Google Driveの共有URLからファイルIDを取得できません"
+              )
+
+          file_id = match.group(1)
 
           download_url = (
               "https://drive.usercontent.google.com/download"
-              "?id=" + file_id + "&export=download&confirm=t"
+              "?id=" + file_id +
+              "&export=download&confirm=t"
           )
 
           print("Downloading baserom.gba...")
-          urllib.request.urlretrieve(download_url, "baserom.gba")
+          urllib.request.urlretrieve(
+              download_url,
+              "baserom.gba"
+          )
           PY
 
+          echo "ROM:"
           ls -lh baserom.gba
           file baserom.gba
 
       - name: Install devkitPro
         run: |
-          wget -O install-devkitpro-pacman https://www.shaffy.fr/install-devkitpro-pacman
+          wget -O install-devkitpro-pacman \
+            https://www.shaffy.fr/install-devkitpro-pacman
+
           sed -i 's/\r$//' install-devkitpro-pacman
+
           chmod +x install-devkitpro-pacman
+
           sudo ./install-devkitpro-pacman
 
       - name: Setup devkitPro
@@ -77,24 +86,67 @@ jobs:
       - name: Build agbcc
         run: |
           git clone https://github.com/pret/agbcc.git
+
           cd agbcc
+
           ./build.sh
+
           ./install.sh ../RhythmTengokuRePlus
+
+          cd ../RhythmTengokuRePlus
+
+      - name: Verify agbcc installation
+        run: |
+          echo "=== agbcc ==="
+          ls -l tools/agbcc/bin/
+
+          echo "=== agbcc headers ==="
+          ls -l tools/agbcc/include/ | head -50
+
+          echo "=== stdint.h ==="
+
+          if [ ! -f tools/agbcc/include/stdint.h ]; then
+            echo "stdint.h is missing. Repairing agbcc headers..."
+
+            cp -v ../agbcc/ginclude/* tools/agbcc/include/
+
+            cp -rv ../agbcc/libc/include/* tools/agbcc/
+
+          fi
+
+          test -f tools/agbcc/include/stdint.h
+
+          echo "stdint.h found:"
+          ls -l tools/agbcc/include/stdint.h
 
       - name: Check ROM
         run: |
-          test -f baserom.gba
+          echo "=== ROM SHA1 ==="
           sha1sum baserom.gba
+
+          echo "=== ROM CRC32 ==="
+          sha256sum baserom.gba
 
       - name: Build DEBUG + PLAYTEST
         run: |
           make distclean
           make -j"$(nproc)" FEATURES="PLAYTEST DEBUG"
 
+      - name: Check build result
+        run: |
+          echo "=== Build directory ==="
+          ls -lah build/
+
+          test -f build/*.gba
+
       - name: Prepare ROM
         run: |
           mkdir -p release
-          cp build/*.gba release/RhythmTengokuRePlus-DEBUG.gba
+
+          cp build/*.gba \
+            release/RhythmTengokuRePlus-DEBUG.gba
+
+          ls -lh release/
 
       - name: Upload ROM
         uses: actions/upload-artifact@v4
