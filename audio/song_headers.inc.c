@@ -63,7 +63,7 @@ struct SongHeader Lesson1_seqData = {
     /* MIDI Sequence */ Lesson1_mid,
     /* Sound Player  */ MUSIC_PLAYER_0,
     /* Bank Number   */ INST_BANK_13,
-    /* Volume        */ 120,
+    /* Volume        */ 90,
     /* Priority      */ 50,
     /* unk8          */ 0xff,
     /* Song Title    */ Lesson1_seqName,
@@ -2739,7 +2739,7 @@ struct SongHeader s_rat_squeak_seqData = {
     /* MIDI Sequence */ s_rat_squeak_mid,
     /* Sound Player  */ SFX_PLAYER_1,
     /* Bank Number   */ INST_BANK_6,
-    /* Volume        */ 110,
+    /* Volume        */ 127,
     /* Priority      */ 80,
     /* unk8          */ 0x40,
     /* Song Title    */ s_rat_squeak_seqName,
@@ -9190,18 +9190,6 @@ struct SongHeader marching_orders_tempo_seqData = {
     /* Song Number   */ 3
 };
 
-extern const u8 s_campaign_retry_mid[];
-struct SongHeader s_campaign_retry_seqData = {
-    /* MIDI Sequence */ s_campaign_retry_mid,
-    /* Sound Player  */ SFX_PLAYER_0,
-    /* Bank Number   */ INST_BANK_61,
-    /* Volume        */ 90,
-    /* Priority      */ 120,
-    /* unk8          */ 0xff,
-    /* Song Title    */ s_campaign_retry_seqName,
-    /* Song Number   */ 1948
-};
-
 extern const u8 s_tran_hit_left_mid[];
 struct SongHeader s_tran_hit_left_seqData = {
     /* MIDI Sequence */ s_tran_hit_left_mid,
@@ -9231,7 +9219,7 @@ struct SongHeader s_cursor_edge_seqData = {
     /* MIDI Sequence */ s_cursor_edge_mid,
     /* Sound Player  */ SFX_PLAYER_2,
     /* Bank Number   */ INST_BANK_61,
-    /* Volume        */ 45,
+    /* Volume        */ 75,
     /* Priority      */ 90,
     /* unk8          */ 0x40,
     /* Song Title    */ s_cursor_edge_seqName,
@@ -9243,7 +9231,7 @@ struct SongHeader s_campaign_cursor_seqData = {
     /* MIDI Sequence */ s_campaign_cursor_mid,
     /* Sound Player  */ SFX_PLAYER_2,
     /* Bank Number   */ INST_BANK_61,
-    /* Volume        */ 127,
+    /* Volume        */ 100,
     /* Priority      */ 90,
     /* unk8          */ 0x40,
     /* Song Title    */ s_campaign_cursor_seqName,

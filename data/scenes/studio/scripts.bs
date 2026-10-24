@@ -2067,9 +2067,16 @@ script script_studio_rhythm_tweezers_tempo
 @ Marching Orders TEMPO UP
 script script_studio_marching_orders_tempo
     set_tempo 177
-    set_music_volume 0x100
-    run mute_studio_mus_tracks, MIDI_TRACK_9
-    play_music s_guntai2_seqData
+    @ The extra stage moved to its own song in e4c8e8df5 and this was left
+    @ behind on s_guntai2. Volume matches the stage.
+    @ The part to hand over is track 2: one sample (mo_tempo_16, ~140Hz,
+    @ full volume) struck 109 times on a single pitch, i.e. the marching
+    @ pulse. The tracks on the rhythm kit are not it - 3 is a quiet 4kHz
+    @ shaker texture, 4 is crash cymbals, 11 is noise hits, and 6 is
+    @ melodic (320-970Hz at full volume) despite sitting on that kit.
+    set_music_volume 150
+    run mute_studio_mus_tracks, MIDI_TRACK_2
+    play_music marching_orders_tempo_seqData
     run play_studio_mus_count_in
     rest 24
     rest 24
@@ -2085,12 +2092,12 @@ script script_studio_marching_orders_tempo
     run play_studio_mus_count_in
     rest 24
     dms_start_bg_monitor 2
+    @ 8 beats of count-in above plus 112 here is the new song's 120 beats.
+    @ s_guntai2 was only 88 and looped through the old 168-beat session.
+    rest_beats 32
     rest_beats 32
     rest_beats 32
     rest_beats 16
-    rest_beats 32
-    rest_beats 32
-    rest 382 @ ~15.92 beats
     run scene_stop_music
     rest 2
     rest 24

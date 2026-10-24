@@ -252,7 +252,7 @@ const char *get_campaign_gift_title(s32 id, s32 shortenSongTitle) {
             return reading_material_table[giftID].title;
 
         case CAMPAIGN_GIFT_NEW_GAME:
-            return "ï¿½Vï¿½Qï¿½[ï¿½ï¿½"; // New Game
+            return "VƒQ[ƒ€"; // New Game
     }
 }
 
@@ -282,22 +282,22 @@ void start_campaign_notice(s32 id) {
     notice->y = campaign_gifts_table[id].y;
     level = get_level_data_from_grid_xy(notice->x, notice->y);
     string = notice->text;
-    memcpy(string, "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ü@ï¿½u", 13);  // [Right now]
+    memcpy(string, "‚½‚¾‚¢‚Ü@u", 13);  // [Right now]
     strcat(string, level->name); // "<game_name>"
     if(level->flags & LEVEL_DATA_FLAG_IS_EXTRA) {
         strcat(string, " TEMPO UP!"); // Extra
     }
-    strcat(string, "ï¿½vï¿½@ï¿½Åƒpï¿½[ï¿½tï¿½Fï¿½Nï¿½gï¿½ï¿½Bï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÆA"); // Get a perfect on this
+    strcat(string, "v@‚Åƒp[ƒtƒFƒNƒg‚ğ’B¬‚·‚é‚ÆA"); // Get a perfect on this
     if (!isSpecialSong) {
-        strcat(string, "ï¿½ï¿½ï¿½ï¿½È‚ï¿½"); // game, and you'll receive
+        strcat(string, "‚à‚ê‚È‚­"); // game, and you'll receive
     }
-    strcat(string, "ï¿½@ï¿½u"); // "
+    strcat(string, "@u"); // "
     strcat(string, get_campaign_gift_title(id, FALSE)); // "<gift>"
-    strcat(string, "ï¿½vï¿½@"); // "
+    strcat(string, "v@"); // "
     if (isStandardSong) {
-        strcat(string, "ï¿½Ì‹ï¿½"); // 's song
+        strcat(string, "‚Ì‹È"); // 's song
     }
-    strcat(string, "ï¿½ï¿½ï¿½vï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½g!!"); // received as a present!!
+    strcat(string, "‚ğƒvƒŒƒ[ƒ“ƒg!!"); // received as a present!!
     text_printer_set_string(notice->printer, string);
 
     sprite_set_visible(gSpriteHandler, gGameSelect->selectionBorderSprite, FALSE);
@@ -1105,6 +1105,12 @@ void game_select_read_inputs(void) {
             levelData = get_level_data_from_id(levelID);
             set_next_scene(levelData->scene);
 
+            // Only a game or remix can re-arm a campaign below. Clearing
+            // it here rather than in that branch keeps it from surviving
+            // into the next confirm: bonus entries never touch the flag,
+            // so the notice jingle used to play again on entering them.
+            sReplayingCampaign = FALSE;
+
             switch (levelData->type) {
                 case LEVEL_TYPE_GAME:
                 case LEVEL_TYPE_REMIX:
@@ -1127,8 +1133,6 @@ void game_select_read_inputs(void) {
                         gGameSelect->campaignNotice.x = gGameSelect->cursorX;
                         gGameSelect->campaignNotice.y = gGameSelect->cursorY;
                         sReplayingCampaign = TRUE;
-                    } else {
-                        sReplayingCampaign = FALSE;
                     }
 
                     break;
@@ -1166,9 +1170,10 @@ void game_select_read_inputs(void) {
             play_sound(&s_menu_kettei1_seqData);
             if (sReplayingCampaign) {
                 // Make it audible that the perfect campaign was re-armed,
-                // since holding SELECT otherwise gives no feedback. This
-                // one starts on tick 0 so it lands with the confirm sound.
-                play_sound(&s_campaign_retry_seqData);
+                // since holding SELECT otherwise gives no feedback. The
+                // notice jingle has a 30-tick lead-in, so the confirm
+                // sound above covers the gap and they layer together.
+                play_sound(&s_f_campaign_notice_seqData);
             }
             return;
         }

@@ -105,43 +105,47 @@ void perfect_scene_start(void *sVar, s32 dArg) {
 
     campaignsLeft = TOTAL_PERFECT_CAMPAIGNS - D_030046a8->data.totalPerfects;
     strint(count, campaignsLeft);
-    memcpy(gPerfect->string, "\0021" "\0011" "\001C" "\0030" "\001s" "\0054" "\0018" "「", 17);
-    strcat(gPerfect->string, get_campaign_gift_title(gPerfect->campaignID, FALSE));
-    strcat(gPerfect->string, "」");
-
-    if (giftType == CAMPAIGN_GIFT_SONG) {
-        switch (giftID) {
-            case STUDIO_SONG_HONEY_SWEET_ANGEL:
-            case STUDIO_SONG_WISH:
-                break;
-
-            default:
-                strcat(gPerfect->string, "の曲");
-                break;
-        }
-    }
 
     if (!giftAwarded) {
         // Replaying a campaign that was already cleared: celebrate the
         // perfect, but do not claim to hand out a gift the player owns.
+        // The gift name heads the certificate below, so it has to be left
+        // out here too - otherwise the first prize is announced again.
+        gPerfect->string[0] = '\0';
         strcat(gPerfect->string, "\0020" "\0010" "ふたたび　パーフェクト　です！\n");
         strcat(gPerfect->string, "何か　さしあげたいのですが…\n");
         strcat(gPerfect->string, "何もなくって　ゴメンネ。\n");
         strcat(gPerfect->string, "たくさん　遊んでくれて　ありがとう！");
     } else {
-    strcat(gPerfect->string, "\0020" "\0010" "をプレゼント！\n"); // You've earned a gift!
-    strcat(gPerfect->string, perfect_gift_directive_text[giftType]);
+        memcpy(gPerfect->string, "\0021" "\0011" "\001C" "\0030" "\001s" "\0054" "\0018" "「", 17);
+        strcat(gPerfect->string, get_campaign_gift_title(gPerfect->campaignID, FALSE));
+        strcat(gPerfect->string, "」");
 
-    if (campaignsLeft > 0) {
-        strcat(gPerfect->string, "プレゼントは　あと　" "\0021" "\0011"); // There are still...
-        strcat(gPerfect->string, count);
-        strcat(gPerfect->string, "コ" "\0020" "\0010" "　あるから、\n" // ...gifts
-                                     "他のキャンペーンにもチャレンジしてみてネ！"); // left to get. Keep going!
-    } else {
-        strcat(gPerfect->string, "プレゼントは　これで" "\0021" "\0011" // 0 gifts left.
-                                     "オシマイ" "\0020" "\0010" "です。\n"); // You finally got them all!
-        strcat(gPerfect->string, "パーフェクトキャンペーン、コンプリートです！"); // Congratulations!
-    }
+        if (giftType == CAMPAIGN_GIFT_SONG) {
+            switch (giftID) {
+                case STUDIO_SONG_HONEY_SWEET_ANGEL:
+                case STUDIO_SONG_WISH:
+                    break;
+
+                default:
+                    strcat(gPerfect->string, "の曲");
+                    break;
+            }
+        }
+
+        strcat(gPerfect->string, "\0020" "\0010" "をプレゼント！\n"); // You've earned a gift!
+        strcat(gPerfect->string, perfect_gift_directive_text[giftType]);
+
+        if (campaignsLeft > 0) {
+            strcat(gPerfect->string, "プレゼントは　あと　" "\0021" "\0011"); // There are still...
+            strcat(gPerfect->string, count);
+            strcat(gPerfect->string, "コ" "\0020" "\0010" "　あるから、\n" // ...gifts
+                                         "他のキャンペーンにもチャレンジしてみてネ！"); // left to get. Keep going!
+        } else {
+            strcat(gPerfect->string, "プレゼントは　これで" "\0021" "\0011" // 0 gifts left.
+                                         "オシマイ" "\0020" "\0010" "です。\n"); // You finally got them all!
+            strcat(gPerfect->string, "パーフェクトキャンペーン、コンプリートです！"); // Congratulations!
+        }
     }
 
     text_printer_set_string(gPerfect->printer, gPerfect->string);
@@ -153,7 +157,7 @@ s32 is_studio_song_registered(s32 songID) {
     s32 i;
     s32 total = D_030046a8->data.totalSongs;
     for (i = 0; i < total; i++) {
-        if (D_030046a8->data.studioSongs[i].songID == songID) {
+        if (studio_song(i)->songID == songID) {
             return 1;
         }
     }
@@ -169,6 +173,23 @@ void unlock_all_unassigned_campaign_gift_songs(void) {
     for (studioSongs = unassigned_campaign_gift_songs; *studioSongs >= 0; studioSongs++) {
         if (!is_studio_song_registered(*studioSongs)) {
             save_studio_song(*studioSongs, -1, 1, 0);
+        }
+    }
+}
+
+
+// Register every song handed out as a Perfect Campaign gift. Playtest saves
+// mark the campaigns cleared directly, so the gift code above never runs for
+// them and the studio would be missing all of the campaign songs.
+void unlock_all_campaign_gift_songs(void) {
+    s32 i;
+
+    for (i = 0; i < TOTAL_PERFECT_CAMPAIGNS; i++) {
+        if (campaign_gifts_table[i].type != CAMPAIGN_GIFT_SONG) {
+            continue;
+        }
+        if (!is_studio_song_registered(campaign_gifts_table[i].id)) {
+            save_studio_song(campaign_gifts_table[i].id, -1, 1, 0);
         }
     }
 }
