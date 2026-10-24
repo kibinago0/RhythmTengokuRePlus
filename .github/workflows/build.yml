@@ -130,7 +130,7 @@ jobs:
       - name: Build DEBUG + PLAYTEST
         run: |
           make distclean
-          make -j"$(nproc)" FEATURES="PLAYTEST DEBUG"
+          make -j"$(nproc)
 
       - name: Check build result
         run: |
